@@ -2,40 +2,42 @@
 
 ## 1. Architecture Overview
 
-VisualIQ follows a component-based, feature-oriented architecture.
+VisualIQ follows a feature-oriented, component-based architecture using React Native, Expo and TypeScript.
 
-The application separates:
+The architecture separates application responsibilities into:
 
-- Navigation.
-- Screen presentation.
-- Reusable components.
-- Business logic.
+- Navigation and routing.
+- Screen-level presentation.
+- Reusable UI components.
+- Design tokens.
+- Global application state.
 - Data management.
-- Shared state.
-- Utilities.
-- Automated tests.
+- Business logic.
+- Utility functions.
+- Type definitions.
+- Automated testing.
 
-The architecture must remain lightweight and appropriate for a four-screen MVP.
+The primary objective is to maintain a scalable, maintainable and testable codebase without unnecessary architectural complexity.
 
-Do not introduce unnecessary architectural patterns or dependencies.
-
-## 2. Proposed Folder Structure
+## 2. Final Project Structure
 
 ```text
 visualiq-mobile/
 │
-├── app/
-│   ├── _layout.tsx
-│   │
-│   └── (tabs)/
-│       ├── _layout.tsx
-│       ├── index.tsx
-│       ├── explore.tsx
-│       ├── reports.tsx
-│       └── profile.tsx
-│
 ├── src/
+│   │
+│   ├── app/
+│   │   ├── _layout.tsx
+│   │   │
+│   │   └── (tabs)/
+│   │       ├── _layout.tsx
+│   │       ├── index.tsx
+│   │       ├── explore.tsx
+│   │       ├── reports.tsx
+│   │       └── profile.tsx
+│   │
 │   ├── components/
+│   │   │
 │   │   ├── common/
 │   │   │   ├── AppHeader.tsx
 │   │   │   ├── AppCard.tsx
@@ -74,14 +76,14 @@ visualiq-mobile/
 │   ├── context/
 │   │   └── ThemeContext.tsx
 │   │
+│   ├── hooks/
+│   │   └── useTheme.ts
+│   │
 │   ├── data/
 │   │   ├── dashboard.ts
 │   │   ├── analytics.ts
 │   │   ├── activities.ts
 │   │   └── reports.ts
-│   │
-│   ├── hooks/
-│   │   └── useTheme.ts
 │   │
 │   ├── services/
 │   │   ├── analyticsService.ts
@@ -98,11 +100,6 @@ visualiq-mobile/
 │       ├── formatDate.ts
 │       └── calculateGrowth.ts
 │
-├── __tests__/
-│   ├── utils/
-│   ├── services/
-│   └── components/
-│
 ├── assets/
 │   ├── images/
 │   └── fonts/
@@ -113,244 +110,394 @@ visualiq-mobile/
 │   ├── DESIGN_SYSTEM.md
 │   └── TESTING.md
 │
+├── __tests__/
+│   ├── components/
+│   ├── services/
+│   └── utils/
+│
 ├── .github/
 │   └── copilot-instructions.md
 │
 ├── app.json
 ├── package.json
 ├── tsconfig.json
+├── expo-env.d.ts
+├── AGENTS.md
 ├── README.md
 └── .gitignore
 ```
 
-This is the target structure. Inspect the existing Expo-generated project before making changes. Preserve required Expo configuration and adapt existing files rather than blindly replacing them.
+This is the target structure, not a requirement to create every file immediately.
 
-## 3. Folder Responsibilities
+Create directories and components only when they are needed by an implementation task.
 
-### app/
+Preserve existing Expo configuration files.
 
-Responsible exclusively for navigation and route entry points.
+## 3. Application Routing
 
-Route components should remain thin.
+Expo Router uses file-based routing.
 
-They should import and render the relevant screen components rather than contain complex business logic.
+The routing directory is:
 
-### src/components/
+`src/app/`
 
-Contains reusable presentation components.
+Do not create another root-level `app/` directory.
 
-Components must receive data through typed props.
+### Root Layout
 
-Do not fetch or generate business data directly inside reusable presentation components.
+File: `src/app/_layout.tsx`
 
-### src/constants/
+Responsibilities:
 
-Contains shared design tokens.
+- Configure the root navigation layout.
+- Register global application providers.
+- Register ThemeProvider.
+- Configure application-wide status bar behavior.
+- Provide the global navigation context.
+
+Keep this file focused on application initialization.
+
+### Tab Layout
+
+File: `src/app/(tabs)/_layout.tsx`
+
+Responsibilities:
+
+- Configure bottom tab navigation.
+- Register four primary tabs.
+- Configure tab icons.
+- Configure active and inactive states.
+- Apply theme colors.
+- Respect device safe areas.
+
+### Route Responsibilities
+
+| Route                | Screen    |
+| -------------------- | --------- |
+| `(tabs)/index.tsx`   | Dashboard |
+| `(tabs)/explore.tsx` | Explore   |
+| `(tabs)/reports.tsx` | Reports   |
+| `(tabs)/profile.tsx` | Profile   |
+
+Route files must remain lightweight.
+
+They should import and render their respective screen content or feature components.
+
+Avoid placing extensive business logic inside route files.
+
+## 4. Component Architecture
+
+Components are organized according to their responsibilities.
+
+### Common Components
+
+Location: `src/components/common/`
+
+Contains application-wide reusable UI.
 
 Examples:
 
-- Color palette.
-- Spacing scale.
-- Typography definitions.
+- AppHeader
+- AppCard
+- ScreenContainer
+- EmptyState
 
-Avoid duplicating design values across screens.
+These components must not depend on individual screen implementations.
 
-### src/context/
+### Dashboard Components
 
-Contains globally shared state.
+Location: `src/components/dashboard/`
 
-The MVP uses ThemeContext to manage dark and light theme preferences.
+Contains dashboard-specific presentation components.
 
-Do not place every local state variable inside Context.
+Examples:
 
-### src/data/
+- MetricCard
+- RevenueChart
+- PerformanceChart
+- ActivityList
+
+### Chart Components
+
+Location: `src/components/charts/`
+
+Contains reusable chart wrappers.
+
+Supported visualizations:
+
+- Line chart.
+- Bar chart.
+- Donut chart.
+
+Chart components must receive prepared data through typed props.
+
+### Explore Components
+
+Location: `src/components/explore/`
+
+Contains date range and metric selection components.
+
+### Reports Components
+
+Location: `src/components/reports/`
+
+Contains report cards, search and filtering components.
+
+### Profile Components
+
+Location: `src/components/profile/`
+
+Contains profile and settings-related components.
+
+## 5. Design Tokens
+
+Location: `src/constants/`
+
+Contains centralized design values.
+
+### colors.ts
+
+Defines dark and light theme palettes.
+
+### spacing.ts
+
+Defines the application's spacing scale.
+
+### typography.ts
+
+Defines font sizes, weights and typography styles.
+
+Avoid duplicating design tokens across components.
+
+Follow DESIGN_SYSTEM.md.
+
+## 6. Global State Management
+
+Location: `src/context/`
+
+The MVP uses React Context API for genuinely shared application state.
+
+ThemeContext is responsible for:
+
+- Current theme.
+- Theme switching.
+- Theme initialization.
+- Theme persistence.
+- Exposing theme values to components.
+
+Use AsyncStorage for local theme preference persistence.
+
+Location: `src/hooks/`
+
+Custom hooks expose shared functionality.
+
+Example:
+
+`useTheme.ts`
+
+This hook provides convenient access to ThemeContext.
+
+Do not create separate theme state inside individual screens.
+
+## 7. Data Architecture
+
+Location: `src/data/`
 
 Contains static mock datasets.
 
-All mock analytics and report data must be separated from screen components.
+Examples:
 
-### src/hooks/
+- Dashboard metrics.
+- Revenue analytics.
+- User analytics.
+- Activity records.
+- Reports.
 
-Contains reusable custom React hooks.
+All datasets must have corresponding TypeScript types.
+
+Do not hardcode business data inside presentation components.
+
+## 8. Service Layer
+
+Location: `src/services/`
+
+Responsible for data transformations and business logic.
+
+### analyticsService.ts
+
+Responsibilities:
+
+- Prepare dashboard analytics.
+- Transform chart datasets.
+- Filter analytics by date range.
+- Prepare metric comparisons.
+
+### reportService.ts
+
+Responsibilities:
+
+- Search reports.
+- Filter reports by category.
+- Prepare report summaries.
+- Transform report data.
+
+Services must not depend on React components.
+
+Prefer pure functions wherever possible.
+
+## 9. Type Definitions
+
+Location: `src/types/`
+
+Contains shared TypeScript interfaces and types.
 
 Examples:
 
-- useTheme.
+- AnalyticsMetric.
+- RevenueDataPoint.
+- ActivityItem.
+- Report.
+- ReportCategory.
+- DateRange.
 
-### src/services/
+Avoid duplicating interfaces across files.
 
-Contains business logic and data transformation functions.
+Use strict TypeScript.
 
-Examples:
+Avoid the `any` type.
 
-- Prepare chart datasets.
-- Filter report collections.
-- Transform raw analytics data.
+## 10. Utility Functions
 
-Services must not depend on UI components.
+Location: `src/utils/`
 
-### src/types/
-
-Contains reusable TypeScript interfaces and types.
-
-Avoid duplicating interfaces across multiple files.
-
-### src/utils/
-
-Contains pure helper functions.
+Contains reusable pure helper functions.
 
 Examples:
 
-- Currency formatting.
-- Percentage formatting.
-- Date formatting.
-- Growth calculations.
+- formatCurrency.ts
+- formatPercentage.ts
+- formatDate.ts
+- calculateGrowth.ts
 
-### **tests**/
+Utilities must be independent of presentation components.
 
-Contains automated unit and component tests.
+Write unit tests for utility functions.
 
-Keep test organization consistent with the source code.
+## 11. Data Flow
 
-## 4. Application Data Flow
+The application's standard data flow is:
 
-The intended data flow is:
+```text
+Data Sources
+    |
+    v
+Services
+    |
+    v
+Screen Routes
+    |
+    v
+Feature Components
+    |
+    v
+Reusable UI Components
+```
 
-Mock Data → Service Layer → Screen → Reusable Components
+Example: Dashboard
 
-Example:
+1. Mock analytics data is defined in `src/data/dashboard.ts`.
+2. `analyticsService.ts` prepares the required metrics.
+3. The dashboard route consumes the prepared information.
+4. MetricCard and chart components render the data.
 
-1. Dashboard mock data is stored in src/data/dashboard.ts.
-2. analyticsService prepares the dashboard metrics.
-3. Dashboard screen consumes the prepared data.
-4. MetricCard and chart components render the information.
+Presentation components must not independently calculate business metrics.
 
-Presentation components must not calculate business metrics independently.
-
-## 5. Navigation Architecture
-
-Use Expo Router.
-
-Primary routes:
-
-- app/(tabs)/index.tsx – Dashboard.
-- app/(tabs)/explore.tsx – Explore.
-- app/(tabs)/reports.tsx – Reports.
-- app/(tabs)/profile.tsx – Profile.
-
-The root layout is responsible for global providers.
-
-The tab layout is responsible for bottom tab navigation.
-
-Use Lucide icons for tab navigation.
-
-Maintain a consistent navigation appearance on Android and iOS.
-
-## 6. Component Design Principles
-
-- Prefer small, focused components.
-- Use functional components.
-- Use named exports for reusable components.
-- Use default exports for Expo route components.
-- Define explicit TypeScript props.
-- Avoid unnecessary internal state.
-- Keep business logic outside presentation components.
-- Avoid prop drilling when shared context is appropriate.
-- Avoid premature abstractions.
-
-## 7. State Management
-
-Use React Hooks and Context API.
-
-Local component state:
-
-- Search input.
-- Selected report category.
-- Selected chart metric.
-- Selected date range.
-
-Global application state:
-
-- Theme preference.
-
-Do not introduce Redux, Zustand or other state libraries for the MVP.
-
-Persist theme preferences with AsyncStorage.
-
-## 8. Styling Architecture
+## 12. Styling Architecture
 
 Use React Native StyleSheet.
 
-Centralize shared design values in constants.
+All components must follow DESIGN_SYSTEM.md.
 
-Use Flexbox for layout.
+Rules:
 
-Avoid fixed device dimensions.
+- Use centralized theme tokens.
+- Use Flexbox.
+- Avoid hardcoded device dimensions.
+- Avoid unnecessary inline styling.
+- Support dark and light themes.
+- Respect safe areas.
+- Support Android and iOS.
+- Prevent horizontal overflow.
 
-Support Android and iOS safe areas.
+Do not introduce a web CSS styling architecture into native components.
 
-Use platform-specific styling only when genuinely necessary.
+## 13. Testing Architecture
 
-## 9. Naming Conventions
+Location: `__tests__/`
 
-Components:
+Organize tests by responsibility:
 
-- PascalCase.
-- Example: MetricCard.tsx.
+- components/
+- services/
+- utils/
 
-Hooks:
+Use Jest with jest-expo and React Native Testing Library.
 
-- camelCase with use prefix.
-- Example: useTheme.ts.
+Test observable application behavior.
 
-Utilities:
+Follow TESTING.md.
 
-- camelCase.
-- Example: formatCurrency.ts.
+## 14. Import Conventions
 
-Types:
+Use the configured `@/` alias for imports from `src/`.
 
-- Descriptive PascalCase interfaces.
-- Example: AnalyticsMetric.
-
-Constants:
-
-- UPPER_SNAKE_CASE for individual fixed values where appropriate.
-
-Screens:
-
-- Follow Expo Router route naming.
-
-## 10. Import Conventions
-
-Use the configured @/ alias for src imports where supported.
-
-Example:
+Examples:
 
 ```tsx
 import { MetricCard } from "@/components/dashboard/MetricCard";
+
 import { COLORS } from "@/constants/colors";
+
 import { useTheme } from "@/hooks/useTheme";
 ```
 
-Do not introduce inconsistent relative and absolute import conventions.
+Avoid inconsistent relative import conventions.
 
-## 11. Architecture Constraints
+Preserve the existing TypeScript configuration.
 
-- No business logic inside route layouts.
-- No chart calculations inside screen components.
-- No duplicated mock datasets.
-- No direct DOM manipulation.
-- No browser APIs.
-- No unnecessary dependencies.
-- No unnecessary global state.
-- No circular imports.
-- No direct coupling between UI and future backend implementation.
+## 15. Architecture Constraints
 
-## 12. Future Extensibility
+- Do not create duplicate navigation directories.
+- Do not place business logic inside presentation components.
+- Do not place datasets inside screen files.
+- Do not duplicate theme implementations.
+- Do not introduce unnecessary state management libraries.
+- Do not introduce unnecessary dependencies.
+- Do not create unused components.
+- Do not modify unrelated Expo configuration.
+- Do not migrate away from `src/app/` without explicit approval.
 
-The architecture should allow future replacement of mock datasets with REST API responses.
+## 16. Future Extensibility
 
-The screen and component interfaces should remain independent of the underlying data source.
+The architecture must allow future replacement of mock datasets with backend API responses.
 
-Do not implement backend infrastructure in the current MVP.
+Screens and components must not depend directly on the underlying data source.
+
+The service layer should provide a clear boundary between data retrieval and presentation.
+
+Backend integration is outside the current MVP scope.
+
+## 17. Development Principle
+
+Follow this implementation sequence:
+
+1. Inspect existing files.
+2. Understand the requirements.
+3. Identify reusable components.
+4. Implement the smallest meaningful change.
+5. Validate TypeScript.
+6. Run relevant tests.
+7. Validate Android and iOS behavior.
+8. Document significant architectural changes.
+
+Prioritize maintainability, correctness and simplicity over unnecessary abstraction.
