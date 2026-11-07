@@ -40,7 +40,7 @@ Use the following technologies:
 
 Use compatible versions of dependencies already installed in the project.
 
-Never upgrade Expo, React Native or major dependencies without explicit approval.
+Check `package.json` before using or adding a package. Reuse installed dependencies; do not install duplicate or unnecessary packages. Never upgrade Expo, React Native or major dependencies without explicit approval.
 
 ## 3. General Development Rules
 
@@ -88,9 +88,11 @@ Remember that React Native does not render HTML.
 
 - Use Expo Router.
 - Use file-based routing.
-- Keep route files inside app/.
+- `src/app/` is the only Expo Router directory.
+- Never create a root-level `app/` directory or a second routing directory.
+- Follow the documented `src/app/_layout.tsx` and `src/app/(tabs)/` route structure.
 - Keep screen presentation components separate from route definitions.
-- Implement exactly four primary tabs.
+- Implement exactly four primary tabs: Dashboard, Explore, Reports and Profile.
 - Maintain navigation consistency.
 - Use appropriate icons from Lucide React Native.
 - Avoid custom navigation implementations.
@@ -101,22 +103,26 @@ Follow docs/ARCHITECTURE.md.
 
 Responsibilities:
 
-- app/: Navigation and route entry points.
-- src/components/: Reusable presentation components.
-- src/constants/: Shared design tokens.
-- src/context/: Shared application state.
-- src/data/: Mock datasets.
-- src/hooks/: Custom React hooks.
-- src/services/: Business logic and data transformations.
-- src/types/: TypeScript types and interfaces.
-- src/utils/: Pure utility functions.
-- **tests**/: Automated tests.
+- `src/app/`: The only Expo Router directory. Keep the root `_layout.tsx` here and the four routes in `(tabs)/`: `_layout.tsx`, `index.tsx` (Dashboard), `explore.tsx`, `reports.tsx` and `profile.tsx`.
+- `src/components/common/`: Shared UI such as AppHeader, AppCard, ScreenContainer and EmptyState.
+- `src/components/dashboard/`, `src/components/charts/`, `src/components/explore/`, `src/components/reports/`, `src/components/profile/`: Screen-specific components and reusable chart wrappers.
+- `src/constants/`: Centralized colors, spacing and typography tokens.
+- `src/context/`: Shared application state, including ThemeContext.
+- `src/hooks/`: Custom hooks, including useTheme.
+- `src/data/`: Typed static mock datasets.
+- `src/services/`: Business logic and data transformations.
+- `src/types/`: Shared TypeScript types and interfaces.
+- `src/utils/`: Pure utility functions.
+- `__tests__/components/`, `__tests__/services/`, `__tests__/utils/`: Automated tests organized by responsibility.
+- `assets/` and `docs/`: Application assets and project documentation.
 
-Do not place complex business logic inside route files.
+Follow the target folder structure and responsibilities in `docs/ARCHITECTURE.md`; create files only when needed. Do not place complex business logic inside route files.
 
 Do not place data transformations inside presentation components.
 
 Do not create new architectural layers without a valid reason.
+
+The standard data flow is `src/data/` → `src/services/` → route/screen → feature and reusable components. Keep services independent of React components and presentation components independent of mock datasets.
 
 ## 7. Component Development
 
@@ -141,6 +147,7 @@ Maintain a practical balance.
 
 Follow docs/DESIGN_SYSTEM.md.
 
+- Use the documented VisualIQ design system; the default theme is dark, and both dark and light themes must be supported.
 - Use React Native StyleSheet.
 - Centralize color tokens.
 - Centralize spacing tokens.
@@ -154,19 +161,20 @@ Follow docs/DESIGN_SYSTEM.md.
 - Support safe areas.
 - Prevent horizontal overflow.
 
-Use theme values from the existing theme architecture.
+Use theme values from the documented theme architecture. Do not introduce a separate styling or web CSS system.
 
 ## 9. Theme Management
 
-Use ThemeContext and the useTheme hook.
+Use `src/context/ThemeContext.tsx` and the `src/hooks/useTheme.ts` hook.
 
 The application must support:
 
 - Dark theme.
 - Light theme.
-- Persistent theme preference.
+- Dark as the default theme.
+- Theme initialization and persisted theme preference.
 
-Use AsyncStorage for local theme persistence.
+Use the already-installed AsyncStorage dependency for local theme persistence. Keep theme state, switching, initialization and persistence in the shared theme context; do not duplicate theme state in screens.
 
 Avoid duplicating theme state across individual screens.
 
@@ -203,9 +211,9 @@ Keep the data layer independent of presentation components.
 
 ## 12. Chart Development
 
-Use React Native Gifted Charts.
+Use the installed React Native Gifted Charts dependency and verify its installed API before using properties or methods.
 
-Implement reusable wrappers for:
+Place reusable chart wrappers in `src/components/charts/` for:
 
 - Line charts.
 - Bar charts.
@@ -264,6 +272,8 @@ Do not execute git commit, git push, git merge or create Pull Requests without e
 Suggest appropriate conventional commit messages.
 
 Never force-push or rewrite Git history without explicit approval.
+
+Preserve existing worktree changes. Do not discard or overwrite unrelated user changes.
 
 ## 15. AI Implementation Workflow
 
